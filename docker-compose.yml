@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  dashboard-ui:
+    build:
+      context: ./retail-dashboard
+    ports:
+      - "3000:3000"
+    env_file:
+    - ./retail-dashboard/.env
+    depends_on:
+      - ui-backend
+    networks:
+      - retail-net
+
+  ui-backend:
+    build:
+      context: ./retail-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+    depends_on:
+      - db
+    networks:
+      - retail-net
+
+
+  db:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - retail-net
+
+  ai_inference:
+    build: ./services/ai_inference
+    ports:
+      - "8001:8001"
+    networks:
+      - retail-net
+
+  video_pipeline:
+    build: ./services/video_pipeline
+    ports:
+      - "8002:8002"
+    networks:
+      - retail-net
+
+  analytics_engine:
+    build: ./services/analytics_engine
+    ports:
+      - "8003:8003"
+    networks:
+      - retail-net
+
+volumes:
+  pgdata:
+
+networks:
+  retail-net:
+    driver: bridge
