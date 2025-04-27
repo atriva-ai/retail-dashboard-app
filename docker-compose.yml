@@ -25,7 +25,6 @@ services:
     networks:
       - retail-net
 
-
   db:
     image: postgres:14
     ports:
@@ -43,6 +42,8 @@ services:
     build: ./services/ai_inference
     ports:
       - "8001:8001"
+    volumes:
+      - shared-temp-data:/app/shared
     networks:
       - retail-net
 
@@ -50,6 +51,8 @@ services:
     build: ./services/video_pipeline
     ports:
       - "8002:8002"
+    volumes:
+      - shared-temp-data:/app/shared
     networks:
       - retail-net
 
@@ -62,6 +65,7 @@ services:
 
 volumes:
   pgdata:
+  shared-temp-data:
 
 networks:
   retail-net:
