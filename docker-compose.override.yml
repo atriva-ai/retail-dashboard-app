@@ -1,15 +1,25 @@
-version: "3.9"
 services:
-  backend:
-    volumes:
-      - ../retail-backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
   frontend:
     volumes:
-      - ./retail-dashboard:/app
+      - ./dashboard-ui:/app
       - frontend_node_modules:/app/node_modules
+    env_file:
+      - ./dashboard-ui/.env.local
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:8000
     command: npm run dev
 
-volumes:
-  frontend_node_modules:
+  backend:
+    depends_on:
+       db:
+         condition: service_healthy
+    environment:
+      - ENV=development
+
+  db:
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "atriva", "-d", "atrv-retail"]
+      interval: 3s
+      timeout: 5s
+      retries: 5

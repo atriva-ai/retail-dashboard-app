@@ -1,71 +1,74 @@
-version: "3.9"
-
 services:
-  dashboard-ui:
+  frontend:
     build:
-      context: ./retail-dashboard
+      context: ./dashboard-ui
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://backend:8000
     ports:
       - "3000:3000"
-    env_file:
-    - ./retail-dashboard/.env
+    volumes:
+      - frontend_node_modules:/app/node_modules
     depends_on:
-      - ui-backend
+      - backend
     networks:
       - retail-net
 
-  ui-backend:
+  backend:
     build:
-      context: ./retail-backend
+      context: ./dashboard-backend
+    env_file:
+      - ./dashboard-backend/.env
     ports:
       - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
     depends_on:
       - db
     networks:
       - retail-net
 
   db:
-    image: postgres:14
+    image: postgres:15
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+    env_file:
+      - ./dashboard-backend/.env
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - retail-net
 
   ai_inference:
-    build: ./services/ai_inference
+    build: ./services/ai-inference
     ports:
       - "8001:8001"
+    env_file:
+      - ./services/ai-inference/.env
     volumes:
       - shared-temp-data:/app/shared
     networks:
       - retail-net
 
   video_pipeline:
-    build: ./services/video_pipeline
+    build: ./services/video-pipeline
     ports:
       - "8002:8002"
+    env_file:
+      - ./services/video-pipeline/.env
     volumes:
       - shared-temp-data:/app/shared
     networks:
       - retail-net
 
-  analytics_engine:
-    build: ./services/analytics_engine
-    ports:
-      - "8003:8003"
-    networks:
-      - retail-net
+  #analytics_engine:
+  #  build: ./services/analytics-engine
+  #  ports:
+  #    - "8003:8003"
+  #  networks:
+  #    - retail-net
 
 volumes:
   pgdata:
   shared-temp-data:
+  frontend_node_modules:
 
 networks:
   retail-net:
