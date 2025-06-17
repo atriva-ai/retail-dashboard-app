@@ -24,10 +24,13 @@ services:
       context: ./dashboard-backend
     env_file:
       - ./dashboard-backend/.env
+    environment:
+      - ENV=development
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - retail-net
 
@@ -41,6 +44,11 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - retail-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atriva"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   ai_inference:
     build: ./services/ai-inference
