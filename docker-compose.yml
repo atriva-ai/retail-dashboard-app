@@ -21,10 +21,17 @@ services:
       context: ./dashboard-backend
     env_file:
       - ./dashboard-backend/.env
+    environment:
+      - VIDEO_PIPELINE_URL=http://video_pipeline:8002
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_started
+      video_pipeline:
+        condition: service_healthy
+      ai_inference:
+        condition: service_healthy
     networks:
       - retail-net
 
@@ -49,6 +56,12 @@ services:
       - shared-temp-data:/app/shared
     networks:
       - retail-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   video_pipeline:
     build: ./services/video-pipeline
@@ -60,6 +73,12 @@ services:
       - shared-temp-data:/app/shared
     networks:
       - retail-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/video-pipeline/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   #analytics_engine:
   #  build: ./services/analytics-engine

@@ -31,6 +31,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      video_pipeline:
+        condition: service_healthy
+      ai_inference:
+        condition: service_healthy
     networks:
       - retail-net
 
@@ -60,6 +64,12 @@ services:
       - shared-temp-data:/app/shared
     networks:
       - retail-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   video_pipeline:
     build: ./services/video-pipeline
@@ -71,6 +81,12 @@ services:
       - shared-temp-data:/app/shared
     networks:
       - retail-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/video-pipeline/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   #analytics_engine:
   #  build: ./services/analytics-engine
