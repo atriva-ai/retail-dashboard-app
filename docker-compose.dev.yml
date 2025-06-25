@@ -3,12 +3,12 @@ services:
     build:
       context: ./dashboard-ui
       args:
-        - NEXT_PUBLIC_API_URL=http://localhost:8000
+        - NEXT_PUBLIC_API_URL=http://localhost/api
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost/api
     volumes:
       - ./dashboard-ui:/app
       - frontend_node_modules:/app/node_modules
@@ -26,6 +26,7 @@ services:
       - ./dashboard-backend/.env
     environment:
       - ENV=development
+      - VIDEO_PIPELINE_URL=http://video_pipeline:8002
     ports:
       - "8000:8000"
     depends_on:
@@ -53,6 +54,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   ai_inference:
     build: ./services/ai-inference
@@ -62,6 +64,8 @@ services:
       - ./services/ai-inference/.env
     volumes:
       - shared-temp-data:/app/shared
+    extra_hosts:
+      - "localhost:host-gateway"
     networks:
       - retail-net
     healthcheck:
@@ -79,6 +83,8 @@ services:
       - ./services/video-pipeline/.env
     volumes:
       - shared-temp-data:/app/shared
+    extra_hosts:
+      - "localhost:host-gateway"
     networks:
       - retail-net
     healthcheck:
@@ -88,12 +94,20 @@ services:
       retries: 3
       start_period: 40s
 
-  #analytics_engine:
-  #  build: ./services/analytics-engine
-  #  ports:
-  #    - "8003:8003"
-  #  networks:
-  #    - retail-net
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - backend
+      - video_pipeline
+      - ai_inference
+    networks:
+      - retail-net
 
 volumes:
   pgdata:
