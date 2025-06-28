@@ -24,8 +24,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
       - retail-net
 
@@ -39,12 +38,6 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - retail-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U atriva -d atrv-retail"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   ai_inference:
     build: ./services/ai-inference
@@ -58,12 +51,6 @@ services:
       - "localhost:host-gateway"
     networks:
       - retail-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   video_pipeline:
     build: ./services/video-pipeline
@@ -77,12 +64,6 @@ services:
       - "localhost:host-gateway"
     networks:
       - retail-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/video-pipeline/health/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   nginx:
     image: nginx:alpine
