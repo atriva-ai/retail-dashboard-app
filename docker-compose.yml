@@ -5,8 +5,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - INTERNAL_API_URL=http://nginx/api
-      - NEXT_PUBLIC_API_URL=http://localhost/api
+      - INTERNAL_API_URL=http://nginx
+      - NEXT_PUBLIC_API_URL=http://localhost
     volumes:
       - frontend_node_modules:/app/node_modules
     depends_on:
@@ -29,7 +29,7 @@ services:
       - retail-net
 
   db:
-    image: postgres:15
+    image: postgres:15.5
     ports:
       - "5432:5432"
     env_file:
@@ -66,7 +66,7 @@ services:
       - retail-net
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.25.3-alpine
     ports:
       - "80:80"
       - "443:443"
